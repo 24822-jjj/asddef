@@ -42,7 +42,7 @@
 <body>
   <div class="container">
     <h1>Semiconductor Insight Lab</h1>
-    <div class="subtitle">반도체 주요 기업 AI 정밀 분석 및 TTS 브리핑 플랫폼 (GAS Proxy 기반)</div>
+    <div class="subtitle">반도체 주요 기업 AI 정밀 분석 및 TTS 브리핑 플랫폼 (GAS Script Property 기반)</div>
 
     <section id="authSection">
       <div class="auth-box">
@@ -98,8 +98,8 @@
       measurementId: "G-K1JG20P0SC"
     };
 
-    // 🔗 ⚠️ [필수 입력] 내 구글 앱스크립트 웹앱 주소를 입력하세요!
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby7SCzFoQ_z8D_18gWAQWlCebaRCRgcI8v8CKVXRH0Fo6vczyXvqdoOiertH_7FiZDn/exec";
+    // 🔗 ⚠️ [필수 입력] 새로 배포된 구글 앱스크립트 웹앱 주소로 채워넣으세요!
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxq-SbSoVRLOcqbx9QEIOGfeHQN8vklxE7FIdBXlZMLarfD3e8_VzY78-eaUhm_3v3L/exec";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -127,7 +127,7 @@
     signupBtn.addEventListener('click', async () => {
       const email = emailInput.value.trim(); const password = passwordInput.value.trim();
       if (!email || !password) return alert('이메일과 비밀번호를 모두 입력해주세요.');
-      try { await createUserWithEmailAndPassword(auth, email, password); alert('회원가입 완료!'); } 
+      try { await createUserWithEmailAndPassword(auth, email, password); alert('회원가입 완료! 자동으로 로그인됩니다.'); } 
       catch (error) { alert(error.message); }
     });
 
@@ -165,22 +165,20 @@
 
     function stopRealtimeDataListener() { if (currentItemsRef) { off(currentItemsRef); currentItemsRef = null; } }
 
-    // [구글 앱스크립트 웹앱 연동 API 호출]
     analyzeBtn.addEventListener('click', async () => {
       if (!currentUser) return;
-      if (APPS_SCRIPT_URL === "내_구글_앱스크립트_웹앱_URL" || !APPS_SCRIPT_URL) {
-        alert("코드 상단의 APPS_SCRIPT_URL 변수에 구글 앱스크립트 웹앱 주소를 입력하셔야 작동합니다!");
+      if (APPS_SCRIPT_URL.includes("여기에_구글")) {
+        alert("코드 상단의 APPS_SCRIPT_URL 변수에 구글 웹앱 주소를 입력하세요!");
         return;
       }
       
       const company = companySelect.value;
-      setStatus(`구글 앱스크립트 서버를 경유하여 ${company} 데이터를 정밀 분석 중...`);
+      setStatus(`구글 앱스크립트 속성 보안망을 경유하여 ${company} 분석 중...`);
       analyzeBtn.disabled = true;
 
       const prompt = `${company}의 현재 핵심 반도체 기술 현황(HBM 및 나노 공정)과 미래 시장 전망을 애널리스트 관점에서 명확하게 딱 3가지로만 요약해줘. 어조는 문장형(~입니다)으로 격식 있게 작성해줘.`;
 
       try {
-        // 프론트엔드에서는 키를 보내지 않고, 질문과 액션만 안전하게 전송합니다.
         const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
           body: JSON.stringify({
@@ -192,6 +190,12 @@
 
         const resData = await response.json();
         
+        if(resData.error) {
+          alert("서버 내부 오류: " + resData.error);
+          setStatus("분석 실패");
+          return;
+        }
+
         let aiResult = "";
         if (typeof resData === 'string') aiResult = resData;
         else if (resData.reply) aiResult = resData.reply;
@@ -207,11 +211,11 @@
           createdAt: new Date().toLocaleString('ko-KR')
         });
 
-        setStatus('구글 앱스크립트 연동 분석 성공 및 실시간 DB 동기화 완료!');
+        setStatus('보안 프록시 연동 분석 성공 및 실시간 DB 저장 완료!');
       } catch (error) {
         console.error(error);
-        alert('서버 송수신 오류: ' + error.message);
-        setStatus('서버 연동 통신 실패');
+        alert('통신 오류가 발생했습니다: ' + error.message);
+        setStatus('서버 통신 실패');
       } finally {
         analyzeBtn.disabled = false;
       }
